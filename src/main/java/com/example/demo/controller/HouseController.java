@@ -11,7 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -25,14 +25,14 @@ public class HouseController {
     private final UserRepository userRepository;
 
     @PostMapping("/create/")
-    public ResponseEntity<HouseDTO> createHouse(@AuthenticationPrincipal UserDetails userDetails, @RequestBody Map<String, String> payload) {
-        User user = getUser(userDetails);
+    public ResponseEntity<HouseDTO> createHouse(@AuthenticationPrincipal OAuth2User oAuth2User, @RequestBody Map<String, String> payload) {
+        User user = getUser(oAuth2User);
         return ResponseEntity.status(HttpStatus.CREATED).body(houseService.createHouse(user, payload.get("name")));
     }
 
     @PostMapping("/create-invite/")
-    public ResponseEntity<?> createInvite(@AuthenticationPrincipal UserDetails userDetails, @RequestBody CreateInviteDTO dto) {
-        User user = getUser(userDetails);
+    public ResponseEntity<?> createInvite(@AuthenticationPrincipal OAuth2User oAuth2User, @RequestBody CreateInviteDTO dto) {
+        User user = getUser(oAuth2User);
         try {
             TemporaryInvite invite = houseService.createInvite(user, dto);
             return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("code", invite.getCode(), "expires_at", invite.getExpiresAt()));
@@ -42,8 +42,8 @@ public class HouseController {
     }
 
     @PostMapping("/use-invite/")
-    public ResponseEntity<?> useInvite(@AuthenticationPrincipal UserDetails userDetails, @RequestBody UseInviteDTO dto) {
-        User user = getUser(userDetails);
+    public ResponseEntity<?> useInvite(@AuthenticationPrincipal OAuth2User oAuth2User, @RequestBody UseInviteDTO dto) {
+        User user = getUser(oAuth2User);
         try {
             return ResponseEntity.ok(houseService.useInvite(user, dto));
         } catch (RuntimeException e) {
@@ -52,8 +52,8 @@ public class HouseController {
     }
 
     @PostMapping("/leave/")
-    public ResponseEntity<?> leaveHouse(@AuthenticationPrincipal UserDetails userDetails) {
-        User user = getUser(userDetails);
+    public ResponseEntity<?> leaveHouse(@AuthenticationPrincipal OAuth2User oAuth2User) {
+        User user = getUser(oAuth2User);
         try {
             houseService.leaveHouse(user);
             return ResponseEntity.ok(Map.of("message", "Left house successfully."));
@@ -63,8 +63,8 @@ public class HouseController {
     }
 
     @DeleteMapping("/delete/")
-    public ResponseEntity<?> deleteHouse(@AuthenticationPrincipal UserDetails userDetails) {
-        User user = getUser(userDetails);
+    public ResponseEntity<?> deleteHouse(@AuthenticationPrincipal OAuth2User oAuth2User) {
+        User user = getUser(oAuth2User);
         try {
             houseService.deleteHouse(user);
             return ResponseEntity.noContent().build();
@@ -74,8 +74,8 @@ public class HouseController {
     }
 
     @PostMapping("/transfer-admin/")
-    public ResponseEntity<?> transferAdmin(@AuthenticationPrincipal UserDetails userDetails, @RequestBody Map<String, Long> payload) {
-        User user = getUser(userDetails);
+    public ResponseEntity<?> transferAdmin(@AuthenticationPrincipal OAuth2User oAuth2User, @RequestBody Map<String, Long> payload) {
+        User user = getUser(oAuth2User);
         try {
             houseService.transferAdmin(user, payload.get("new_admin_id"));
             return ResponseEntity.ok(Map.of("message", "Adminship transferred successfully."));
@@ -84,8 +84,9 @@ public class HouseController {
         }
     }
 
-    private User getUser(UserDetails userDetails) {
-        return userRepository.findByEmail(userDetails.getUsername())
+    private User getUser(OAuth2User oAuth2User) {
+        String email = oAuth2User.getAttribute("email");
+        return userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
     }
 }

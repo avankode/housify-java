@@ -8,7 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -26,8 +26,8 @@ public class QueueController {
     private final MappingService mappingService;
 
     @GetMapping("/")
-    public ResponseEntity<List<QueueItemDTO>> getQueueItems(@AuthenticationPrincipal UserDetails userDetails) {
-        User user = getUser(userDetails);
+    public ResponseEntity<List<QueueItemDTO>> getQueueItems(@AuthenticationPrincipal OAuth2User oAuth2User) {
+        User user = getUser(oAuth2User);
         if (user.getHouse() == null) {
             return ResponseEntity.ok(List.of());
         }
@@ -38,8 +38,8 @@ public class QueueController {
     }
 
     @PostMapping("/add/")
-    public ResponseEntity<?> addQueueItem(@AuthenticationPrincipal UserDetails userDetails, @RequestBody Map<String, Object> payload) {
-        User user = getUser(userDetails);
+    public ResponseEntity<?> addQueueItem(@AuthenticationPrincipal OAuth2User oAuth2User, @RequestBody Map<String, Object> payload) {
+        User user = getUser(oAuth2User);
         if (user.getHouse() == null) {
             return ResponseEntity.badRequest().body(Map.of("error", "User does not belong to a house."));
         }
@@ -71,8 +71,8 @@ public class QueueController {
     }
 
     @DeleteMapping("/{pk}/delete/")
-    public ResponseEntity<?> deleteQueueItem(@AuthenticationPrincipal UserDetails userDetails, @PathVariable Long pk) {
-        User user = getUser(userDetails);
+    public ResponseEntity<?> deleteQueueItem(@AuthenticationPrincipal OAuth2User oAuth2User, @PathVariable Long pk) {
+        User user = getUser(oAuth2User);
         QueueItem item = queueItemRepository.findById(pk)
                 .orElseThrow(() -> new RuntimeException("Item not found"));
 
@@ -85,8 +85,8 @@ public class QueueController {
     }
 
     @PostMapping("/clear/")
-    public ResponseEntity<?> clearQueue(@AuthenticationPrincipal UserDetails userDetails) {
-        User user = getUser(userDetails);
+    public ResponseEntity<?> clearQueue(@AuthenticationPrincipal OAuth2User oAuth2User) {
+        User user = getUser(oAuth2User);
         if (user.getHouse() == null) {
             return ResponseEntity.badRequest().body(Map.of("detail", "User does not belong to a house."));
         }
@@ -94,8 +94,9 @@ public class QueueController {
         return ResponseEntity.noContent().build();
     }
 
-    private User getUser(UserDetails userDetails) {
-        return userRepository.findByEmail(userDetails.getUsername())
+    private User getUser(OAuth2User oAuth2User) {
+        String email = oAuth2User.getAttribute("email");
+        return userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
     }
 }

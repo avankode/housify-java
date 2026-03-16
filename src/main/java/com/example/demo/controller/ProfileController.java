@@ -9,7 +9,7 @@ import com.example.demo.service.MappingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -21,9 +21,9 @@ public class ProfileController {
     private final UserRepository userRepository;
     private final MappingService mappingService;
 
-    @PutMapping("/update/")
-    public ResponseEntity<ProfileDTO> updateProfile(@AuthenticationPrincipal UserDetails userDetails, @RequestBody ProfileDTO dto) {
-        User user = getUser(userDetails);
+    @PatchMapping("/update/")
+    public ResponseEntity<ProfileDTO> updateProfile(@AuthenticationPrincipal OAuth2User oAuth2User, @RequestBody ProfileDTO dto) {
+        User user = getUser(oAuth2User);
         Profile profile = user.getProfile();
         
         if (profile == null) {
@@ -38,8 +38,9 @@ public class ProfileController {
         return ResponseEntity.ok(mappingService.mapToProfileDTO(profile));
     }
 
-    private User getUser(UserDetails userDetails) {
-        return userRepository.findByEmail(userDetails.getUsername())
+    private User getUser(OAuth2User oAuth2User) {
+        String email = oAuth2User.getAttribute("email");
+        return userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
     }
 }
