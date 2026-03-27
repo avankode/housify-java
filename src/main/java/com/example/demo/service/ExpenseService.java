@@ -9,6 +9,7 @@ import java.util.Map;
 
 public interface ExpenseService {
     List<ExpenseDTO> getAllExpenses(User user);
+    List<ExpenseDTO> getFilteredExpenses(User user, String category, LocalDateTime startDate, LocalDateTime endDate);
     ExpenseDTO createExpense(User user, Map<String, Object> payload);
     BannerStatsDTO getBannerStats(User user, LocalDateTime startDate, LocalDateTime endDate);
 }

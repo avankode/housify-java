@@ -56,6 +56,20 @@ public class ExpenseServiceImpl implements ExpenseService {
     }
 
     @Override
+    public List<ExpenseDTO> getFilteredExpenses(User user, String category, LocalDateTime startDate, LocalDateTime endDate) {
+        Expense.Category cat = Expense.Category.valueOf(category.toUpperCase());
+        List<Expense> expenses;
+        if (cat == Expense.Category.PERSONAL_DUE) {
+            expenses = expenseRepository.findByUserWhoPaidAndCategoryAndDateBetween(user, cat, startDate, endDate);
+        } else {
+            expenses = expenseRepository.findByHouseAndCategoryAndDateBetween(user.getHouse(), cat, startDate, endDate);
+        }
+        return expenses.stream()
+                .map(mappingService::mapToExpenseDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
     public BannerStatsDTO getBannerStats(User user, LocalDateTime startDate, LocalDateTime endDate) {
         House house = user.getHouse();
         if (house == null) {

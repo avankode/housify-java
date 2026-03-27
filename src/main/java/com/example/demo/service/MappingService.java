@@ -8,16 +8,31 @@ import java.util.stream.Collectors;
 @Service
 public class MappingService {
 
-    public UserDTO mapToUserDTO(User user) {
+    public UserDTO mapToUserDTOWithoutHouse(User user) {
         if (user == null) return null;
         return UserDTO.builder()
                 .id(user.getId())
                 .username(user.getUsername())
                 .email(user.getEmail())
-                .house(mapToHouseDTO(user.getHouse()))
                 .profile(mapToProfileDTO(user.getProfile()))
                 .displayName(user.getProfile() != null ? user.getProfile().getDisplayName() : null)
                 .profilePhotoUrl(user.getProfile() != null ? user.getProfile().getProfilePhotoUrl() : null)
+                .build();
+    }
+
+    public UserDTO mapToUserDTO(User user) {
+        if (user == null) return null;
+        UserDTO dto = mapToUserDTOWithoutHouse(user);
+        dto.setHouse(mapToHouseDTOWithoutMembers(user.getHouse()));
+        return dto;
+    }
+
+    public HouseDTO mapToHouseDTOWithoutMembers(House house) {
+        if (house == null) return null;
+        return HouseDTO.builder()
+                .id(house.getId())
+                .name(house.getName())
+                .admin(mapToUserDTOWithoutHouse(house.getAdmin()))
                 .build();
     }
 
@@ -26,9 +41,9 @@ public class MappingService {
         return HouseDTO.builder()
                 .id(house.getId())
                 .name(house.getName())
-                .adminId(house.getAdmin() != null ? house.getAdmin().getId() : null)
+                .admin(mapToUserDTOWithoutHouse(house.getAdmin()))
                 .members(house.getMembers() != null ? house.getMembers().stream()
-                        .map(this::mapToUserDTO)
+                        .map(this::mapToUserDTOWithoutHouse)
                         .collect(Collectors.toList()) : null)
                 .build();
     }
@@ -60,7 +75,7 @@ public class MappingService {
                 .inventoryItem(mapToInventoryItemDTO(item.getInventoryItem()))
                 .addedBy(item.getAddedBy() != null ? item.getAddedBy().getUsername() : null)
                 .quantity(item.getQuantity())
-                .provider(item.getProvider().name())
+                .provider(item.getProvider().name().charAt(0) + item.getProvider().name().substring(1).toLowerCase())
                 .addedAt(item.getAddedAt())
                 .build();
     }

@@ -14,6 +14,7 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -26,9 +27,19 @@ public class ExpenseController {
     private final UserRepository userRepository;
 
     @GetMapping("/expenses/")
-    public ResponseEntity<List<ExpenseDTO>> getExpenses(@AuthenticationPrincipal OAuth2User oAuth2User) {
+    public ResponseEntity<Map<String, Object>> getExpenses(
+            @AuthenticationPrincipal OAuth2User oAuth2User,
+            @RequestParam("category") String category,
+            @RequestParam("start_date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
+            @RequestParam("end_date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate) {
         User user = getUser(oAuth2User);
-        return ResponseEntity.ok(expenseService.getAllExpenses(user));
+        List<ExpenseDTO> results = expenseService.getFilteredExpenses(user, category, startDate, endDate);
+        Map<String, Object> response = new LinkedHashMap<>();
+        response.put("count", results.size());
+        response.put("next", null);
+        response.put("previous", null);
+        response.put("results", results);
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/expenses/")
@@ -40,12 +51,12 @@ public class ExpenseController {
     @GetMapping("/stats/banner-summary/")
     public ResponseEntity<BannerStatsDTO> getBannerStats(
             @AuthenticationPrincipal OAuth2User oAuth2User,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime start_date,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end_date) {
-        
+            @RequestParam("start_date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
+            @RequestParam("end_date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate) {
+
         User user = getUser(oAuth2User);
         try {
-            return ResponseEntity.ok(expenseService.getBannerStats(user, start_date, end_date));
+            return ResponseEntity.ok(expenseService.getBannerStats(user, startDate, endDate));
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().build();
         }

@@ -10,6 +10,6 @@ import java.util.List;
 public class HouseDTO {
     private Long id;
     private String name;
-    private Long adminId;
+    private UserDTO admin;
     private List<UserDTO> members;
 }

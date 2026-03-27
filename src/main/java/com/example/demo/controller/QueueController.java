@@ -71,7 +71,7 @@ public class QueueController {
     }
 
     @DeleteMapping("/{pk}/delete/")
-    public ResponseEntity<?> deleteQueueItem(@AuthenticationPrincipal OAuth2User oAuth2User, @PathVariable Long pk) {
+    public ResponseEntity<?> deleteQueueItem(@AuthenticationPrincipal OAuth2User oAuth2User, @PathVariable("pk") Long pk) {
         User user = getUser(oAuth2User);
         QueueItem item = queueItemRepository.findById(pk)
                 .orElseThrow(() -> new RuntimeException("Item not found"));
