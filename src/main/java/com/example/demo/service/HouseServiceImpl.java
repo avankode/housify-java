@@ -12,9 +12,11 @@ import com.example.demo.repository.HouseRepository;
 import com.example.demo.repository.TemporaryInviteRepository;
 import com.example.demo.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class HouseServiceImpl implements HouseService {
@@ -35,6 +37,7 @@ public class HouseServiceImpl implements HouseService {
         house = houseRepository.save(house);
         user.setHouse(house);
         userRepository.save(user);
+        log.info("House '{}' created by {}", houseName, user.getEmail());
         return mappingService.mapToHouseDTO(house);
     }
 
@@ -60,6 +63,7 @@ public class HouseServiceImpl implements HouseService {
                 .expiresAt(generator.getExpiryTime())
                 .build();
         
+        log.info("Invite ({}) created for house '{}' by {}", type, house.getName(), user.getEmail());
         return inviteRepository.save(invite);
     }
 
@@ -67,6 +71,7 @@ public class HouseServiceImpl implements HouseService {
     @Transactional
     public HouseDTO useInvite(User user, UseInviteDTO dto) {
         if (user.getHouse() != null) {
+            log.warn("User {} attempted to join a house but is already in one", user.getEmail());
             throw new RuntimeException("You are already in a house.");
         }
 
@@ -74,6 +79,7 @@ public class HouseServiceImpl implements HouseService {
                 .orElseThrow(() -> new RuntimeException("Invalid invite code."));
 
         if (invite.isExpired()) {
+            log.warn("User {} attempted to use an expired invite code", user.getEmail());
             throw new RuntimeException("Invite expired.");
         }
 
@@ -81,7 +87,7 @@ public class HouseServiceImpl implements HouseService {
         user.setHouse(house);
         userRepository.save(user);
         inviteRepository.delete(invite);
-        
+        log.info("User {} joined house '{}'", user.getEmail(), house.getName());
         return mappingService.mapToHouseDTO(house);
     }
 
@@ -94,6 +100,7 @@ public class HouseServiceImpl implements HouseService {
 
         user.setHouse(null);
         userRepository.save(user);
+        log.info("User {} left house '{}'", user.getEmail(), house.getName());
     }
 
     @Override
@@ -103,6 +110,7 @@ public class HouseServiceImpl implements HouseService {
         if (house == null || !house.getAdmin().equals(user)) {
             throw new RuntimeException("Only admins can delete the house.");
         }
+        log.info("House '{}' deleted by admin {}", house.getName(), user.getEmail());
         houseRepository.delete(house);
     }
 
@@ -123,5 +131,6 @@ public class HouseServiceImpl implements HouseService {
 
         house.setAdmin(newAdmin);
         houseRepository.save(house);
+        log.info("Admin of house '{}' transferred from {} to {}", house.getName(), user.getEmail(), newAdmin.getEmail());
     }
 }

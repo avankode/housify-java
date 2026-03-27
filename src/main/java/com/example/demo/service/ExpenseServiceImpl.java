@@ -8,6 +8,7 @@ import com.example.demo.model.User;
 import com.example.demo.repository.ExpenseRepository;
 import com.example.demo.strategy.ExpenseStrategy;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,6 +19,7 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ExpenseServiceImpl implements ExpenseService {
@@ -51,7 +53,7 @@ public class ExpenseServiceImpl implements ExpenseService {
         strategy.validate(user, payload);
         Expense expense = strategy.buildExpense(user, payload);
         expense = expenseRepository.save(expense);
-        
+        log.info("Expense '{}' (₹{}, {}) created by {}", expense.getName(), expense.getAmount(), category, user.getEmail());
         return mappingService.mapToExpenseDTO(expense);
     }
 

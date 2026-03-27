@@ -9,11 +9,10 @@ spring:
   jpa:
     hibernate:
       ddl-auto: update
-    show-sql: true
+    show-sql: false
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
-        format_sql: true
   jackson:
     property-naming-strategy: SNAKE_CASE
     serialization:
@@ -32,3 +31,13 @@ spring:
 
 server:
   port: 8080
+
+logging:
+  level:
+    root: WARN
+    com.example.demo: INFO
+    org.springframework.web.servlet.DispatcherServlet: WARN
+    org.springframework.security: WARN
+    org.hibernate: WARN
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss z} %highlight(%-5level) %cyan(%logger{25}) - %msg%n"

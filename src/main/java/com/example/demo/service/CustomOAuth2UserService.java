@@ -5,6 +5,7 @@ import com.example.demo.model.User;
 import com.example.demo.repository.ProfileRepository;
 import com.example.demo.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
@@ -14,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class CustomOAuth2UserService extends DefaultOAuth2UserService {
@@ -33,6 +35,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         User user;
         if (userOptional.isPresent()) {
             user = userOptional.get();
+            log.info("Login: {} ({})", name, email);
         } else {
             user = User.builder()
                     .email(email)
@@ -48,6 +51,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                     .build();
             profileRepository.save(profile);
             user.setProfile(profile);
+            log.info("New user registered: {} ({})", name, email);
         }
 
         return oAuth2User;

@@ -23,7 +23,7 @@ public class MappingService {
     public UserDTO mapToUserDTO(User user) {
         if (user == null) return null;
         UserDTO dto = mapToUserDTOWithoutHouse(user);
-        dto.setHouse(mapToHouseDTOWithoutMembers(user.getHouse()));
+        dto.setHouse(mapToHouseDTO(user.getHouse()));
         return dto;
     }
 

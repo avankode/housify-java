@@ -5,6 +5,7 @@ import com.example.demo.model.*;
 import com.example.demo.repository.*;
 import com.example.demo.service.MappingService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -15,6 +16,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/queues")
 @RequiredArgsConstructor
@@ -66,6 +68,7 @@ public class QueueController {
                             .provider(provider)
                             .build();
                     queueItemRepository.save(newItem);
+                    log.info("Queue: {} added {}x '{}' via {} to house '{}'", user.getEmail(), quantityToAdd, inventoryItem.getName(), provider, user.getHouse().getName());
                     return ResponseEntity.status(HttpStatus.CREATED).body(mappingService.mapToQueueItemDTO(newItem));
                 });
     }
@@ -81,6 +84,7 @@ public class QueueController {
         }
 
         queueItemRepository.delete(item);
+        log.info("Queue: item {} deleted by {}", pk, user.getEmail());
         return ResponseEntity.noContent().build();
     }
 
@@ -91,6 +95,7 @@ public class QueueController {
             return ResponseEntity.badRequest().body(Map.of("detail", "User does not belong to a house."));
         }
         queueItemRepository.deleteByHouse(user.getHouse());
+        log.info("Queue cleared for house '{}' by {}", user.getHouse().getName(), user.getEmail());
         return ResponseEntity.noContent().build();
     }
 

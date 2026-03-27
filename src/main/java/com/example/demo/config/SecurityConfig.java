@@ -1,14 +1,17 @@
 package com.example.demo.config;
 
 import com.example.demo.service.CustomOAuth2UserService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -16,6 +19,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.Arrays;
 
+@Slf4j
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
@@ -48,9 +52,16 @@ public class SecurityConfig {
             )
             .logout(logout -> logout
                 .logoutUrl("/api/logout/")
-                .logoutSuccessUrl("/")
                 .deleteCookies("JSESSIONID")
                 .invalidateHttpSession(true)
+                .logoutSuccessHandler((request, response, authentication) -> {
+                    if (authentication != null && authentication.getPrincipal() instanceof OAuth2User oAuth2User) {
+                        String email = oAuth2User.getAttribute("email");
+                        String name = oAuth2User.getAttribute("name");
+                        log.info("Logout: {} ({})", name, email);
+                    }
+                    response.setStatus(200);
+                })
             )
             .sessionManagement(session -> session
                 .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
