@@ -58,11 +58,6 @@ public class SecurityConfig {
             .oauth2Login(oauth2 -> oauth2
                 .userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
                 .defaultSuccessUrl(frontendUrl + "/post-login-redirect", true)
-                .successHandler((request, response, authentication) -> {
-                    String redirectUrl = frontendUrl + "/post-login-redirect";
-                    log.info("OAuth2 login success — redirecting to: {}", redirectUrl);
-                    response.sendRedirect(redirectUrl);
-                })
             )
             .exceptionHandling(exceptions -> exceptions
                 .defaultAuthenticationEntryPointFor(
