@@ -8,6 +8,12 @@ spring:
   jpa:
     hibernate:
       ddl-auto: update
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            redirect-uri: "${BACKEND_URL}/login/oauth2/code/google"
 
 server:
   forward-headers-strategy: native
