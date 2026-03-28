@@ -17,9 +17,3 @@ spring:
 
 server:
   forward-headers-strategy: native
-
-app:
-  cors:
-    allowed-origins: ${ALLOWED_ORIGINS}
-  frontend:
-    url: ${FRONTEND_URL}

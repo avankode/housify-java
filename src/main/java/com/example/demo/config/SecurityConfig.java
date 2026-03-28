@@ -30,14 +30,19 @@ public class SecurityConfig {
 
     private final CustomOAuth2UserService customOAuth2UserService;
 
-    @Value("${app.cors.allowed-origins:http://localhost:3000,http://127.0.0.1:3000}")
+    @Value("${ALLOWED_ORIGINS:http://localhost:3000,http://127.0.0.1:3000}")
     private String allowedOriginsRaw;
 
-    @Value("${app.frontend.url:http://localhost:3000}")
+    @Value("${FRONTEND_URL:http://localhost:3000}")
     private String frontendUrl;
 
     public SecurityConfig(CustomOAuth2UserService customOAuth2UserService) {
         this.customOAuth2UserService = customOAuth2UserService;
+    }
+
+    @jakarta.annotation.PostConstruct
+    public void logConfig() {
+        log.info("Post-login redirect URL: {}/post-login-redirect", frontendUrl);
     }
 
     @Bean
@@ -52,7 +57,12 @@ public class SecurityConfig {
             )
             .oauth2Login(oauth2 -> oauth2
                 .userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
-                    .defaultSuccessUrl(frontendUrl + "/post-login-redirect", true)
+                .defaultSuccessUrl(frontendUrl + "/post-login-redirect", true)
+                .successHandler((request, response, authentication) -> {
+                    String redirectUrl = frontendUrl + "/post-login-redirect";
+                    log.info("OAuth2 login success — redirecting to: {}", redirectUrl);
+                    response.sendRedirect(redirectUrl);
+                })
             )
             .exceptionHandling(exceptions -> exceptions
                 .defaultAuthenticationEntryPointFor(

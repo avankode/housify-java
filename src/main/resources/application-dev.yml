@@ -1,0 +1,6 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/housify_main_db
+    username: housify_admin
+    password: 1234
+    driver-class-name: org.postgresql.Driver

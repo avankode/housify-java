@@ -1,11 +1,6 @@
 spring:
   config:
     import: "optional:application-secrets.yml"
-  datasource:
-    url: ${DB_URL:jdbc:postgresql://localhost:5432/housify_main_db}
-    username: ${DB_USERNAME:housify_admin}
-    password: ${DB_PASSWORD:1234}
-    driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
       ddl-auto: update
@@ -17,7 +12,6 @@ spring:
     property-naming-strategy: SNAKE_CASE
     serialization:
       write-dates-as-timestamps: false
-
   security:
     oauth2:
       client:
@@ -30,13 +24,7 @@ spring:
               - profile
 
 server:
-  port: ${PORT:8080}
-
-app:
-  cors:
-    allowed-origins: ${ALLOWED_ORIGINS:http://localhost:3000,http://127.0.0.1:3000}
-  frontend:
-    url: ${FRONTEND_URL:http://localhost:3000}
+  port: 8080
 
 logging:
   level:
