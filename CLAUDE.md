@@ -36,3 +36,8 @@ Get the frontend (`feature/hosting-ec2` branch) fully working with this Java bac
 - When making API changes in this repo, corresponding changes may be needed on the `feature/hosting-ec2` branch of the frontend.
 - Compare against the Django backend's API contracts when in doubt about expected request/response shapes.
 - Both backends use PostgreSQL — use the Django backend's models/schema as reference when building or modifying tables in this repo.
+
+## Additional Notes
+- All production level deployments that are to be made are to be made in the frontend are to be made from now on in `/Users/avaneeshkulkarni/PycharmProjects/Housify/frontend` in the branch 'feature/java-deployment'
+- All production level deployments that are to be made are to be made in the backend are to be made from now on in this repository in the branch 'prod'
+- both these branches are already made and i am in them right now
