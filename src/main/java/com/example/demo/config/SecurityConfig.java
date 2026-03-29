@@ -27,6 +27,7 @@ import java.util.List;
 public class SecurityConfig {
 
     private final CustomOAuth2UserService customOAuth2UserService;
+    private final OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler;
 
     @Value("${ALLOWED_ORIGINS:http://localhost:3000,http://127.0.0.1:3000}")
     private String allowedOriginsRaw;
@@ -34,13 +35,15 @@ public class SecurityConfig {
     @Value("${FRONTEND_URL:http://localhost:3000}")
     private String frontendUrl;
 
-    public SecurityConfig(CustomOAuth2UserService customOAuth2UserService) {
+    public SecurityConfig(CustomOAuth2UserService customOAuth2UserService,
+                          OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler) {
         this.customOAuth2UserService = customOAuth2UserService;
+        this.oAuth2LoginSuccessHandler = oAuth2LoginSuccessHandler;
     }
 
     @jakarta.annotation.PostConstruct
     public void logConfig() {
-        log.info("Post-login redirect URL: {}/post-login-redirect", frontendUrl);
+        log.info("FRONTEND_URL configured as: {}", frontendUrl);
     }
 
     @Bean
@@ -49,13 +52,13 @@ public class SecurityConfig {
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/register/", "/api/login/", "/api/csrf/", "/api/health/", "/oauth2/**").permitAll()
+                .requestMatchers("/api/register/", "/api/login/", "/api/csrf/", "/api/health/", "/oauth2/**", "/api/auth/exchange-token/").permitAll()
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 .anyRequest().authenticated()
             )
             .oauth2Login(oauth2 -> oauth2
                 .userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
-                .defaultSuccessUrl(frontendUrl + "/post-login-redirect", true)
+                .successHandler(oAuth2LoginSuccessHandler)
             )
             .exceptionHandling(exceptions -> exceptions
                 .defaultAuthenticationEntryPointFor(
