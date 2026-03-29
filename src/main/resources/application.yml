@@ -12,6 +12,11 @@ spring:
     property-naming-strategy: SNAKE_CASE
     serialization:
       write-dates-as-timestamps: false
+  session:
+    store-type: jdbc
+    jdbc:
+      initialize-schema: always
+    timeout: 24h
   security:
     oauth2:
       client:
