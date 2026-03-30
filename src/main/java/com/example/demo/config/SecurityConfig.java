@@ -14,6 +14,8 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.session.web.http.CookieSerializer;
+import org.springframework.session.web.http.DefaultCookieSerializer;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -27,7 +29,6 @@ import java.util.List;
 public class SecurityConfig {
 
     private final CustomOAuth2UserService customOAuth2UserService;
-    private final OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler;
 
     @Value("${ALLOWED_ORIGINS:http://localhost:3000,http://127.0.0.1:3000}")
     private String allowedOriginsRaw;
@@ -35,10 +36,8 @@ public class SecurityConfig {
     @Value("${FRONTEND_URL:http://localhost:3000}")
     private String frontendUrl;
 
-    public SecurityConfig(CustomOAuth2UserService customOAuth2UserService,
-                          OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler) {
+    public SecurityConfig(CustomOAuth2UserService customOAuth2UserService) {
         this.customOAuth2UserService = customOAuth2UserService;
-        this.oAuth2LoginSuccessHandler = oAuth2LoginSuccessHandler;
     }
 
     @jakarta.annotation.PostConstruct
@@ -52,13 +51,13 @@ public class SecurityConfig {
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/register/", "/api/login/", "/api/csrf/", "/api/health/", "/oauth2/**", "/api/auth/exchange-token/").permitAll()
+                .requestMatchers("/api/register/", "/api/login/", "/api/csrf/", "/api/health/", "/oauth2/**").permitAll()
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 .anyRequest().authenticated()
             )
             .oauth2Login(oauth2 -> oauth2
                 .userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
-                .successHandler(oAuth2LoginSuccessHandler)
+                .defaultSuccessUrl(frontendUrl + "/post-login-redirect", true)
             )
             .exceptionHandling(exceptions -> exceptions
                 .defaultAuthenticationEntryPointFor(
@@ -68,7 +67,7 @@ public class SecurityConfig {
             )
             .logout(logout -> logout
                 .logoutUrl("/api/logout/")
-                .deleteCookies("JSESSIONID")
+                .deleteCookies("SESSION")
                 .invalidateHttpSession(true)
                 .logoutSuccessHandler((request, response, authentication) -> {
                     if (authentication != null && authentication.getPrincipal() instanceof OAuth2User oAuth2User) {
@@ -102,6 +101,21 @@ public class SecurityConfig {
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public CookieSerializer cookieSerializer() {
+        DefaultCookieSerializer serializer = new DefaultCookieSerializer();
+        if (frontendUrl.startsWith("https")) {
+            // Production: cross-domain cookies require SameSite=None; Secure
+            serializer.setSameSite("None");
+            serializer.setUseSecureCookie(true);
+            log.info("Session cookie configured: SameSite=None; Secure=true");
+        } else {
+            serializer.setSameSite("Lax");
+            log.info("Session cookie configured: SameSite=Lax (local dev)");
+        }
+        return serializer;
     }
 
 }

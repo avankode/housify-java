@@ -14,10 +14,5 @@ spring:
         registration:
           google:
             redirect-uri: "${BACKEND_URL}/login/oauth2/code/google"
-  session:
-    cookie:
-      same-site: none
-      secure: true
-
 server:
   forward-headers-strategy: framework

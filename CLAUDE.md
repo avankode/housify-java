@@ -41,3 +41,4 @@ Get the frontend (`feature/hosting-ec2` branch) fully working with this Java bac
 - All production level deployments that are to be made are to be made in the frontend are to be made from now on in `/Users/avaneeshkulkarni/PycharmProjects/Housify/frontend` in the branch 'feature/java-deployment'
 - All production level deployments that are to be made are to be made in the backend are to be made from now on in this repository in the branch 'prod'
 - both these branches are already made and i am in them right now
+- when making changes to the front end , make sure the npm run build command runs successfully.
