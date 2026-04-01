@@ -10,6 +10,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -41,6 +42,7 @@ public class AuthExchangeController {
     private final MappingService mappingService;
 
     @PostMapping("/exchange-token/")
+    @Transactional
     public ResponseEntity<?> exchangeToken(@RequestParam("lt") String tokenValue,
                                            HttpServletRequest request) {
         Optional<LoginToken> tokenOpt = loginTokenRepository.findByToken(tokenValue);
@@ -88,7 +90,13 @@ public class AuthExchangeController {
                 "google"
         );
 
-        // Create a new session and store the security context
+        // Invalidate existing session (session fixation protection) and create a fresh one.
+        // This guarantees Set-Cookie is always present in the response so the browser
+        // can store the session regardless of whether one already existed from the OAuth2 callback.
+        HttpSession existing = request.getSession(false);
+        if (existing != null) {
+            existing.invalidate();
+        }
         HttpSession session = request.getSession(true);
         SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
         securityContext.setAuthentication(authToken);

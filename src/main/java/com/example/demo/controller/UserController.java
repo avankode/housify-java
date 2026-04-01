@@ -6,6 +6,7 @@ import com.example.demo.repository.UserRepository;
 import com.example.demo.service.MappingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.oauth2.core.user.OAuth2User;
@@ -22,6 +23,7 @@ public class UserController {
     private final MappingService mappingService;
 
     @GetMapping("/user/")
+    @Transactional(readOnly = true)
     public ResponseEntity<UserDTO> getCurrentUser(@AuthenticationPrincipal OAuth2User oAuth2User) {
         if (oAuth2User == null) {
             return ResponseEntity.status(401).build();
